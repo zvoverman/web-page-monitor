@@ -1,16 +1,11 @@
 # web-page-monitor
 
-**Start the Vue.js frontend via vue-cli-service**
-```
-npm run start:client
-```
-
-**Start the Express.js backend**
-```
-npm run start:server
+**Start Local Server**
+```bash
+npm start
 ```
 
-**Start the docker environment**
-```
-npm run start-container
+**Build and Run Docker Image**
+```bash
+npm run start:container
 ```
