@@ -1,12 +1,9 @@
 ARG NODE_VERSION=20.10.0
-
-# Use a Node.js base image
 FROM node:${NODE_VERSION}-slim
 
 # We don't need the standalone Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
 ENV chrome_launchOptions_args --no-sandbox,--disable-dev-shm-usage
-
 
 # Install Google Chrome Stable and fonts
 # Note: this installs the necessary libs to make the browser work with Puppeteer.
@@ -24,7 +21,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install Node.js dependencies
-RUN npm ci
+RUN npm install
 
 # Copy the rest of the application code
 COPY . .
@@ -33,4 +30,4 @@ COPY . .
 EXPOSE 8080
 
 # Define the command to run the application
-CMD [ "npm", "run", "start" ]
+CMD [ "npm", "run", "start:prod" ]

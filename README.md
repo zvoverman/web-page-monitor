@@ -1,6 +1,6 @@
 # web-page-monitor
 
-**Start Local Server**
+**Start Development Server**
 ```bash
 npm start
 ```
