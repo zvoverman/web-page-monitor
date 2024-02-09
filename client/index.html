@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Input</title>
+</head>
+
+<body>
+    <h1>Enter a URL:</h1>
+    <input type="text" id="urlInput" placeholder="Enter URL here...">
+    <button id="goButton" onclick="onClick()">Go</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        function onClick() {
+            axios.post('/api/monitor/' + encodeURIComponent(document.getElementById("urlInput").value))
+                .then(function (response) {
+                    console.log(response);
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        }
+    </script>
+
+</body>
+
+</html>
