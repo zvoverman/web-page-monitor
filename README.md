@@ -1,11 +1,19 @@
 # web-page-monitor
 
-**Start Development Server**
+Web Page Monitor is a web server application built with Vue.js, Node.js, Express, and SQLite, designed for monitoring web pages.
+
+**Start Development Environment**
 ```bash
-npm start
+npm run serve
+```
+
+**Start Production Server**
+```bash
+npm run build
+npm start 
 ```
 
 **Build and Run Docker Image**
 ```bash
-npm run start:container
+npm run start-container
 ```

@@ -1,5 +1,4 @@
-ARG NODE_VERSION=20.10.0
-FROM node:${NODE_VERSION}-slim
+FROM node:lts-slim
 
 # We don't need the standalone Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD true
@@ -30,4 +29,4 @@ COPY . .
 EXPOSE 8080
 
 # Define the command to run the application
-CMD [ "npm", "run", "start:prod" ]
+CMD [ "npm", "run", "start:dev" ]
