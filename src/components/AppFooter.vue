@@ -12,13 +12,13 @@ footer {
     left: 0;
     bottom: 0;
     width: 100%;
-    background-color: red;
-    color: red;
+    background-color: var(--dark-color);
+    color: var(--light-color);
     text-align: center;
 }
 
 p {
-    color: white;
+    color: var(--light-color);
     padding: 10px;
 }
 </style>

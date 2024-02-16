@@ -10,9 +10,6 @@ app.use(cors());
 
 const port = process.env.PORT || 8080;
 
-const map = []
-let id = 0;
-
 // Create SQLite database connection
 const db = new sqlite3.Database(path.join(__dirname, 'database.db'), (err) => {
     if (err) {
@@ -63,20 +60,20 @@ app.get('/api/monitor/:id', (req, res) => {
 app.post('/api/monitor/:url', (req, res) => {
     // Retrieve URL from request parameters
     const url = decodeURIComponent(req.params.url);
-
-    // Store url with key: id
-    map.push(url);
+    let task_id
 
     // Insert URL into the SQLite database
     db.run('INSERT INTO urls (url) VALUES (?)', [url], function (err) {
         if (err) {
             return console.error('Error inserting URL into database:', err.message);
         }
-        console.log(`URL inserted with row id ${this.lastID}`);
+        task_id = this.lastID
+        console.log(`URL inserted with row id ${task_id}`);
+        res.status(200).json({ id: task_id });
     });
 
-    res.status(200).json({ id: id });
-    id++;
+    // res.status(500).json({ message: 'Internal Server Error' });
+   
 });
 
 // Error handling middleware

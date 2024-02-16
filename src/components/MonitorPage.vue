@@ -30,7 +30,7 @@ export default {
             if (url && url != '') {
                 axios.post('/api/monitor/' + encodeURIComponent(url))
                     .then(function (response) {
-                        const task_id = response.data.id
+                        let task_id = response.data.id
                         console.log("task_id: " + task_id)
                     })
                     .catch(function (error) {
@@ -46,7 +46,7 @@ export default {
         getStatus(id) {
             axios.get('/api/monitor/' + id)
                 .then(function (response) {
-                    console.log(response)
+                    console.log("url: " + response.data.url)
                 })
                 .catch(function (error) {
                     console.log(error)
