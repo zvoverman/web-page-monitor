@@ -17,7 +17,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'database.db'), (err) => {
     } else {
         console.log('Connected to the SQLite database.');
         // Create 'urls' table if it doesn't exist
-        db.run('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT)', function (err) {
+        db.run('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, is_deleted INTEGER DEFAULT 0)', function (err) {
             if (err) {
                 console.error('Error creating table:', err.message);
             } else {
@@ -37,26 +37,6 @@ app.get('/', (req, res) => {
 	res.sendFile(path.join(__dirname, '/dist/index.html'))
 })
 
-app.get('/api/monitor/:id', (req, res) => {
-    const task_id = req.params.id;
-
-    // Retrieve URL from the database based on the provided ID
-    db.get('SELECT url FROM urls WHERE id = ?', [task_id], (err, row) => {
-        if (err) {
-            console.error('Error retrieving URL from database:', err.message);
-            res.status(500).json({ message: 'Internal Server Error' });
-        } else {
-            if (row) {
-                const url = row.url;
-                console.log('Retrieved URL:', url);
-                res.status(200).json({ url: url});
-            } else {
-                res.status(404).json({ message: 'URL not found' });
-            }
-        }
-    });
-});
-
 app.post('/api/monitor/:url', (req, res) => {
     // Retrieve URL from request parameters
     const url = decodeURIComponent(req.params.url);
@@ -75,6 +55,48 @@ app.post('/api/monitor/:url', (req, res) => {
     // res.status(500).json({ message: 'Internal Server Error' });
    
 });
+
+app.get('/api/monitor/:id', (req, res) => {
+    const task_id = req.params.id;
+
+    // Retrieve URL from the database based on the provided ID
+    db.get('SELECT url FROM urls WHERE id = ? AND is_deleted = 0', [task_id], (err, row) => {
+        if (err) {
+            console.error('Error retrieving URL from database:', err.message);
+            res.status(500).json({ message: 'Internal Server Error' });
+        } else {
+            if (row) {
+                const url = row.url;
+                console.log('Retrieved URL:', url);
+                res.status(200).json({ message: 'Retrieved URL: ' + url});
+            } else {
+                console.log('URL not found')
+                res.status(404).json({ message: 'URL not found' });
+            }
+        }
+    });
+});
+
+app.delete('/api/monitor/:id', (req, res) => {
+    const task_id = req.params.id;
+
+    // Delete URL from the database based on the provided ID
+    db.run('UPDATE urls SET is_deleted = 1 WHERE id = ?', [task_id], function (err) {
+        if (err) {
+            console.error('Error deleting URL from database:', err.message);
+            res.status(500).json({ message: 'Internal Server Error' });
+        } else {
+            if (this.changes > 0) {
+                console.log('URL deleted successfully');
+                res.status(200).json({ message: 'URL deleted successfully' });
+            } else {
+                console.log('URL with provided ID not found');
+                res.status(404).json({ message: 'URL with provided ID not found' });
+            }
+        }
+    });
+});
+
 
 // Error handling middleware
 app.use((err, req, res, next) => {

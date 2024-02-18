@@ -8,6 +8,6 @@
 header {
     padding: 10px;
     background-color: var(--mid-color);
-    border-radius: 5%;
+    border-radius: 5px;
 }
 </style>
