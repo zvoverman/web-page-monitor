@@ -8,13 +8,15 @@
    
 <style scoped>
 footer {
-    position: fixed;
-    left: 0;
-    bottom: 0;
+    display: flex;
+    text-align: center;
+    align-content: center;
+    justify-content: center;
+
+    padding: 5px;
     width: 100%;
     background-color: var(--dark-color);
     color: var(--light-color);
-    text-align: center;
 }
 
 p {

@@ -1,13 +1,12 @@
 <template>
-    <header>
-        <h1>Web Page Monitor</h1>
-    </header>
+    <div class="navbar-container">
+        <h2>Web Page Monitor</h2>
+    </div>
 </template>
 
 <style>
-header {
+.navbar-container {
     padding: 10px;
-    background-color: var(--mid-color);
-    border-radius: 5px;
+    background-color: var(--secondary-light-color);
 }
 </style>

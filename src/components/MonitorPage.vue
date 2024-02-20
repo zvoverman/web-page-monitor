@@ -2,11 +2,15 @@
     <div class="monitor-page">
         <div class="input-wrapper">
             <p>Enter URL:</p>
-            <input v-model="url" class="input">
+            <input v-model="url" class="input" placeholder="www.example.com">
             <button @click="getWebsite(url)" class="btn" id="post-url-button">GO</button>
         </div>
-        <div class="browser-window">
-            <img :src="screenshot_url" id="browser-screenshot" alt="Screenshot">
+        <div class="browser-window-margins">
+            <div class="browser-window-container">
+                <div class="browser-window">
+                    <img :src="screenshot_url" id="browser-screenshot">
+                </div>
+            </div>
         </div>
         <button @click="postURL(url)" class="btn" id="post-url-button">Monitor</button>
         <div class="input-wrapper">
@@ -100,37 +104,70 @@ export default {
     justify-content: center;
 
     padding: 10px;
+
+    p {
+        padding-top: 5px;
+    }
 }
 
-.input,
-.btn {
+.input {
     background-color: var(--light-color);
     margin-left: 10px;
     margin-top: 10px;
     margin-bottom: 10px;
+
+    border: solid;
+    border-width: 1px;
+    border-radius: 3px;
+}
+.btn {
+    background-color: var(--secondary-light-color);
+    margin-left: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+    border: solid;
+    border-width: 1px;
+    border-radius: 3px;
+    
+    padding: 10px;
+}
+
+.btn:hover {
+    cursor: pointer;
+    opacity: 0.8;
+}
+
+.browser-window-margins {
+    margin-left: 20vw;
+    margin-right: 20vw;
+}
+
+.browser-window-container {
+    position: relative;
+    overflow: auto;
+    width: 100%;
+    /* Set padding top to achieve 16:9 ratio */
+    padding-top: 56.25%;
+
+    background-color: var(--secondary-dark-color);
+
+    border-style: solid;
+    border-color: var(--secondary-light-color);
+    border-radius: 6px;
+    border-width: 10px;
 }
 
 .browser-window {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    height: 450px;  
-    margin-left: 10vw;
-    margin-right: 10vw;
-    overflow: auto;
-
-    background-color: var(--dark-color);
-
-    border-style: solid;
-    border-color: var(--light-color);
-    border-radius: 6px;
-    border-width: 10px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
 }
 
 #browser-screenshot {
     width: 100%;
     height: auto;
-    /* 16:9 Aspect Ratio (9 / 16 = 0.5625) */
 }
 </style>
