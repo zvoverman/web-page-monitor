@@ -3,8 +3,12 @@
         <div class="input-wrapper">
             <p>Enter URL:</p>
             <input v-model="url" class="input">
-            <button @click="postURL(url)" class="btn" id="post-url-button">POST</button>
+            <button @click="getWebsite(url)" class="btn" id="post-url-button">GO</button>
         </div>
+        <div class="browser-window">
+            <img :src="screenshot_url" id="browser-screenshot" alt="Screenshot">
+        </div>
+        <button @click="postURL(url)" class="btn" id="post-url-button">Monitor</button>
         <div class="input-wrapper">
             <p>Get page status (enter id#):</p>
             <input v-model="get_id" class="input">
@@ -28,10 +32,31 @@ export default {
             url: '',
             get_id: '',
             delete_id: '',
+            screenshot_url: '',
         };
     },
     methods: {
-        // On URL button clicked
+        async getWebsite(url) {
+            try {
+                console.log("Grabbing website...")
+                // Fetch the screenshot from backend using Axios
+                const response = await axios.get('/api/screenshot/' + encodeURIComponent(url), {
+                    responseType: 'blob' // Set response type to blob
+                });
+
+                console.log("Response received")
+
+                if (response.status === 200) {
+                    // Convert binary data to URL
+                    const blob = response.data;
+                    this.screenshot_url = URL.createObjectURL(blob);
+                } else {
+                    console.error('Failed to fetch screenshot');
+                }
+            } catch (error) {
+                console.error('Error fetching screenshot:', error);
+            }
+        },
         postURL(url) {
             if (url && url != '') {
                 axios.post('/api/monitor/' + encodeURIComponent(url))
@@ -42,9 +67,6 @@ export default {
                     .catch(function (error) {
                         console.log(error);
                     });
-
-
-
             } else {
                 console.log("no url provided")
             }
@@ -66,7 +88,7 @@ export default {
                 .catch(function (error) {
                     console.log(error)
                 })
-        }
+        },
     },
 }
 </script>
@@ -80,9 +102,35 @@ export default {
     padding: 10px;
 }
 
-.input, .btn {
+.input,
+.btn {
+    background-color: var(--light-color);
     margin-left: 10px;
     margin-top: 10px;
     margin-bottom: 10px;
+}
+
+.browser-window {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 450px;  
+    margin-left: 10vw;
+    margin-right: 10vw;
+    overflow: auto;
+
+    background-color: var(--dark-color);
+
+    border-style: solid;
+    border-color: var(--light-color);
+    border-radius: 6px;
+    border-width: 10px;
+}
+
+#browser-screenshot {
+    width: 100%;
+    height: auto;
+    /* 16:9 Aspect Ratio (9 / 16 = 0.5625) */
 }
 </style>

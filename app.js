@@ -1,9 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path')
-const puppeteer = require('puppeteer')
 const axios = require('axios')
 const sqlite3 = require('sqlite3').verbose();
+
+// Screenshot
+const puppeteer = require('puppeteer')
+const merge = require("merge-img");
+const Jimp = require("jimp");
 
 const app = express();
 app.use(cors());
@@ -34,7 +38,15 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '/dist')));
 
 app.get('/', (req, res) => {
-	res.sendFile(path.join(__dirname, '/dist/index.html'))
+    res.sendFile(path.join(__dirname, '/dist/index.html'))
+})
+
+app.get('/api/screenshot/:url', async (req, res) => {
+    // Retrieve URL from request parameters
+    const url = decodeURIComponent(req.params.url);
+    await takeScreenshot(url);
+    console.log("Finished!")
+    res.status(200).sendFile(path.join(__dirname, './screenshots', 'screenshot.png'));
 })
 
 app.post('/api/monitor/:url', (req, res) => {
@@ -53,7 +65,7 @@ app.post('/api/monitor/:url', (req, res) => {
     });
 
     // res.status(500).json({ message: 'Internal Server Error' });
-   
+
 });
 
 app.get('/api/monitor/:id', (req, res) => {
@@ -68,7 +80,7 @@ app.get('/api/monitor/:id', (req, res) => {
             if (row) {
                 const url = row.url;
                 console.log('Retrieved URL:', url);
-                res.status(200).json({ message: 'Retrieved URL: ' + url});
+                res.status(200).json({ message: 'Retrieved URL: ' + url });
             } else {
                 console.log('URL not found')
                 res.status(404).json({ message: 'URL not found' });
@@ -100,53 +112,121 @@ app.delete('/api/monitor/:id', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-	console.error(err.stack);
-	res.status(500).json({ message: 'Internal Server Error' });
+    console.error(err.stack);
+    res.status(500).json({ message: 'Internal Server Error' });
 });
 
 // Start the server
 app.listen(port, () => {
-	console.log(`Server is running on http://localhost:${port}`);
+    console.log(`Server is running on http://localhost:${port}`);
 });
 
 
+///
+///   Puppeteer Screenshot Logic
+///
+
 // Monitor web page on POST request
-async function monitor(id) {
-	let url = map[id]
+async function takeScreenshot(url) {
+    console.log("Taking screenshot of " + url);
 
-	console.log(url)
+    // Launch the browser and open a new blank page
+    let browser
+    try {
+        browser = await puppeteer.launch({
+            executablePath: '/usr/bin/google-chrome-stable', // Path to installed Chrome executable
+            headless: true,
+            args: ['--no-sandbox', '--disable-dev-shm-usage']
+        });
+    } catch (err) {
+        console.log("Developing outside container, using puppeteer chrome...")
+        browser = await puppeteer.launch();
+    }
 
-	// Launch the browser and open a new blank page
-	let browser
-	try {
-		browser = await puppeteer.launch({
-			executablePath: '/usr/bin/google-chrome-stable', // Path to installed Chrome executable
-			headless: true,
-			args: ['--no-sandbox', '--disable-dev-shm-usage']
-		});
-	} catch (err) {
-		console.log("Developing outside container, using puppeteer chrome")
-		browser = await puppeteer.launch();
-	}
+    // Navigate to provided URL
+    try {
+        const page = await browser.newPage();
 
-	const page = await browser.newPage();
+        await page.goto(url);
 
-	// Set the viewport's width and height
-	await page.setViewport({ width: 1920, height: 1080 });
+        const path = "./screenshots/screenshot.png";
 
-	// Navigate the page to a URL
-	await page.goto(url);
+        const { pages, extraHeight, viewport } = await page.evaluate(() => {
+            window.scrollTo(0, 0);
+            const pageHeight = document.documentElement.scrollHeight;
+            return {
+                pages: Math.ceil(pageHeight / window.innerHeight),
+                extraHeight:
+                    (pageHeight % window.innerHeight) * window.devicePixelRatio,
+                viewport: {
+                    height: window.innerHeight * window.devicePixelRatio,
+                    width: window.innerWidth * window.devicePixelRatio,
+                },
+            };
+        });
 
-	try {
-		// Capture screenshot and save it in the current folder:
-		await page.screenshot({ path: path.join(__dirname, '/public/screenshots/screenshot_' + id + '.jpg') });
+        const sectionScreenshots = [];
+        for (let index = 0; index < pages; index += 1) {
+            // wait until animations are played
+            await wait(400);
 
-	} catch (err) {
-		console.log(`Error: ${err.message}`);
-	} finally {
-		await browser.close();
-		console.log(`Screenshot has been captured successfully`);
-	}
+            const screenshot = await page.screenshot({
+                type: "png",
+                captureBeyondViewport: false,
+            });
+            sectionScreenshots.push(screenshot);
 
-	await browser.close()
+            await scrollDown(page);
+        }
+
+        if (pages === 1) {
+            const screenshot = await Jimp.read(sectionScreenshots[0]);
+            screenshot.write(path);
+
+            return screenshot;
+        }
+
+        if (extraHeight > 0) {
+            const cropped = await Jimp.read(sectionScreenshots.pop())
+                .then((image) =>
+                    image.crop(
+                        0,
+                        viewport.height - extraHeight,
+                        viewport.width,
+                        extraHeight
+                    )
+                )
+                .then((image) => image.getBufferAsync(Jimp.AUTO));
+
+            sectionScreenshots.push(cropped);
+        }
+        const result = await merge(sectionScreenshots, { direction: true });
+
+        await new Promise((resolve) => {
+            result.write(path, () => {
+                resolve();
+            });
+        });
+    } catch (e) {
+        console.log(e);
+    } finally {
+        await browser.close();
+    }
+}
+
+async function scrollDown(page) {
+    return await page.evaluate(() => {
+        window.scrollBy(0, window.innerHeight);
+
+        return (
+            window.scrollY >=
+            document.documentElement.scrollHeight - window.innerHeight
+        );
+    });
+}
+
+function wait(milliseconds) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, milliseconds);
+    });
 }
