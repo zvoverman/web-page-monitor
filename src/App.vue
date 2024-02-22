@@ -23,20 +23,24 @@ export default {
 
 <style>
 :root {
-  --light-color: #D8D8F6;
-  --secondary-light-color: #B18FCF;
-  --mid-color: #978897;
-  --secondary-dark-color: #494850;
-  --dark-color: #2C2C34;
+  --light-color: #fffcf2;
+  --secondary-light-color: #ccc5b9;
+  --mid-color: #eb5e28;
+  --secondary-dark-color: #403d39;
+  --dark-color: #252422;
 }
 
 body {
-  padding:0;
+  padding: 0;
   margin: 0;
 }
 
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  font-family: "Roboto Slab", serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;

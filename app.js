@@ -9,8 +9,26 @@ const puppeteer = require('puppeteer')
 const merge = require("merge-img");
 const Jimp = require("jimp");
 
+const webpack = require('webpack');
+const webpackDevMiddleware = require('webpack-dev-middleware');
+const webpackHotMiddleware = require('webpack-hot-middleware');
+const webpackConfig = require('@vue/cli-service/webpack.config.js');
+
 const app = express();
 app.use(cors());
+
+// HMR Webpack Middleware
+const compiler = webpack(webpackConfig);
+app.use(webpackDevMiddleware(compiler, {
+    publicPath: webpackConfig.output.publicPath
+}));
+app.use(webpackHotMiddleware(compiler));
+
+// Middleware to parse JSON request bodies
+app.use(express.json());
+
+// Serve static files from the '/client/screenshots' directory
+app.use(express.static(path.join(__dirname, '/dist')));
 
 const port = process.env.PORT || 8080;
 
@@ -30,12 +48,6 @@ const db = new sqlite3.Database(path.join(__dirname, 'database.db'), (err) => {
         });
     }
 });
-
-// Middleware to parse JSON request bodies
-app.use(express.json());
-
-// Serve static files from the '/client/screenshots' directory
-app.use(express.static(path.join(__dirname, '/dist')));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '/dist/index.html'))
