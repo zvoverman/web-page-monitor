@@ -1,29 +1,30 @@
 <template>
     <div class="monitor-page">
-        <div class="input-wrapper">
-            <p>Enter URL:</p>
-            <input v-model="url" class="input" placeholder="www.example.com">
-            <button @click="getWebsite(url)" class="btn" id="post-url-button">GO</button>
-        </div>
-        <div class="browser-window-margins">
-            <div class="browser-window-container">
-                <div class="browser-window">
-                    <VuePictureCropper :boxStyle="{
-                        width: '100%',
-                        height: 'auto',
-                        backgroundColor: '#f8f8f8',
-                        margin: '0',
-                    }" :img="screenshot_url" :options="{
-    viewMode: 1,
+        <div class="monitor-panel">
+            <div class="input-wrapper">
+                <input v-model="url" class="input" placeholder="Enter a website: www.example.com">
+                <button @click="getWebsite(url)" class="btn" id="post-url-button">GO</button>
+            </div>
+            <div class="browser-window-margins">
+                <div class="browser-window-container">
+                    <div class="browser-window">
+                        <VuePictureCropper :boxStyle="{
+                            width: '100%',
+                            height: 'auto',
+                            backgroundColor: '#f8f8f8',
+                            margin: '0',
+                        }" :img="screenshot_url" :options="{
+    viewMode: 2,
     dragMode: 'crop',
     movable: false,
     zoomable: false,
     autoCrop: false,
-}" @ready="ready" />
+}" />
+                    </div>
                 </div>
             </div>
+            <button @click="postURL(url)" class="btn" id="post-url-button">Monitor for FREE</button>
         </div>
-        <button @click="postURL(url)" class="btn" id="post-url-button">Monitor</button>
         <div class="input-wrapper">
             <p>Get page status (enter id#):</p>
             <input v-model="get_id" class="input">
@@ -136,50 +137,18 @@ export default {
 </script>
 
 <style scoped>
-.input-wrapper {
-    display: flex;
-    text-align: center;
-    justify-content: center;
-
-    padding: 10px;
-
-    p {
-        padding-top: 5px;
-    }
-}
-
-.input {
-    background-color: var(--light-color);
-    margin-left: 10px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-
-    border: solid;
-    border-width: 1px;
-    border-radius: 3px;
-}
-
-.btn {
+.monitor-panel {
     background-color: var(--secondary-light-color);
-    margin-left: 10px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-
-    border: solid;
-    border-width: 1px;
-    border-radius: 3px;
-
-    padding: 10px;
-}
-
-.btn:hover {
-    cursor: pointer;
-    opacity: 0.8;
+    margin-left: 10vw;
+    margin-right: 10vw;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    border-radius: 30px;
 }
 
 .browser-window-margins {
-    margin-left: 20vw;
-    margin-right: 20vw;
+    margin-left: 5vw;
+    margin-right: 5vw;
 }
 
 .browser-window-container {
@@ -192,7 +161,7 @@ export default {
     background-color: var(--secondary-dark-color);
 
     border-style: solid;
-    border-color: var(--secondary-light-color);
+    border-color: var(--dark-color);
     border-radius: 6px;
     border-width: 10px;
 }
@@ -208,6 +177,59 @@ export default {
 #browser-screenshot {
     width: 100%;
     height: auto;
+}
+.input-wrapper {
+    display: flex;
+    text-align: center;
+    justify-content: center;
+
+    padding: 10px;
+
+    margin-left: 5vw;
+    margin-right: 5vw;
+
+    p {
+        padding-top: 5px;
+    }
+}
+
+.input {
+    text-align: center;
+    background-color: var(--light-color);
+    margin-top: 12px;
+    margin-bottom: 12px;
+
+    padding: 10px;
+
+    width: 100%;
+
+    border: solid;
+    border-width: 2px;
+    border-radius: 3px;
+}
+
+.input:hover {
+    border-color: var(--mid-color);
+}
+
+.btn {
+    background-color: var(--mid-color);
+    margin-left: 10px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+
+    padding: 10px;
+
+    width: 25%;
+
+    border: solid;
+    border-width: 2px;
+    border-radius: 3px;
+}
+
+.btn:hover {
+    cursor: pointer;
+    border-color: var(--mid-color);
 }
 
 #status {
