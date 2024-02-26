@@ -206,6 +206,9 @@ async function takeScreenshot(url, file_path) {
 
         const path = file_path;
 
+        // Set the viewport size
+        await page.setViewport({ width: 1920, height: 1080 });
+
         const { pages, extraHeight, viewport } = await page.evaluate(() => {
             window.scrollTo(0, 0);
             const pageHeight = document.documentElement.scrollHeight;
