@@ -4,13 +4,7 @@ Web Page Monitor is a web server application built with Vue.js, Node.js, Express
 
 **Start Development Environment**
 ```bash
-npm run serve
-```
-
-**Start Production Server**
-```bash
-npm run build
-npm start 
+npm start
 ```
 
 **Build and Run Docker Image**

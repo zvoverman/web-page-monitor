@@ -1,6 +1,6 @@
 <template>
     <div class="navbar-container">
-        <h2>Web Page Monitor</h2>
+        <h1>Web Page Monitor</h1>
     </div>
 </template>
 

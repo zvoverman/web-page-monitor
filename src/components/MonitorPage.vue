@@ -8,7 +8,18 @@
         <div class="browser-window-margins">
             <div class="browser-window-container">
                 <div class="browser-window">
-                    <img :src="screenshot_url" id="browser-screenshot">
+                    <VuePictureCropper :boxStyle="{
+                        width: '100%',
+                        height: 'auto',
+                        backgroundColor: '#f8f8f8',
+                        margin: '0',
+                    }" :img="screenshot_url" :options="{
+    viewMode: 1,
+    dragMode: 'crop',
+    movable: false,
+    zoomable: false,
+    autoCrop: false,
+}" @ready="ready" />
                 </div>
             </div>
         </div>
@@ -23,21 +34,28 @@
             <input v-model="delete_id" class="input">
             <button @click="deleteURL(delete_id)" class="btn" id="delete-url-button">DELETE</button>
         </div>
+        <img id="get-screenshot" />
+        <div id="status"></div>
     </div>
 </template>
 
 <script>
+import VuePictureCropper, { cropper } from 'vue-picture-cropper'
+
 const axios = require('axios');
 
 export default {
     name: 'MonitorPage',
+    components: {
+        VuePictureCropper,
+    },
     data() {
         return {
             url: '',
             get_id: '',
             delete_id: '',
             screenshot_url: '',
-        };
+        }
     },
     methods: {
         async getWebsite(url) {
@@ -61,28 +79,48 @@ export default {
                 console.error('Error fetching screenshot:', error);
             }
         },
-        postURL(url) {
+        async postURL(url) {
             if (url && url != '') {
-                axios.post('/api/monitor/' + encodeURIComponent(url))
-                    .then(function (response) {
-                        let task_id = response.data.id
-                        console.log("task_id: " + task_id)
+                let crop_data = cropper.getData(true); // true - round data values
+                let crop_blob = await cropper.getBlob();
+                console.log("Crop Blob", crop_blob);
+
+                const data = {
+                    url: url,
+                    crop_blob: crop_blob,
+                    data: crop_data,
+                };
+
+                // Make a POST request to the API endpoint
+                axios.post('/api/monitor', data)
+                    .then(response => {
+                        // Handle success
+                        console.log('Task ID:', response.data.id);
                     })
-                    .catch(function (error) {
-                        console.log(error);
-                    });
+                    .catch(error => {
+                        // Handle error
+                        console.error('Error:', error);
+                    })
             } else {
-                console.log("no url provided")
+                console.log("no url provided");
             }
         },
         getStatus(id) {
             axios.get('/api/monitor/' + id)
                 .then(function (response) {
-                    console.log(response.data.message)
+                    let responseData = response.data.result;
+                    let url = response.data.url;
+                    console.log('Data', responseData);
+                    if (responseData.imagesAreSame) {
+                        document.getElementById("status").innerHTML = "There have been NO changes to " + url;
+                    } else {
+                        document.getElementById("status").innerHTML = "There have been " + responseData.diffCount + " changes to " + url;
+                    }
+
                 })
                 .catch(function (error) {
-                    console.log(error)
-                })
+                    console.log(error);
+                });
         },
         deleteURL(id) {
             axios.delete('/api/monitor/' + id)
@@ -120,6 +158,7 @@ export default {
     border-width: 1px;
     border-radius: 3px;
 }
+
 .btn {
     background-color: var(--secondary-light-color);
     margin-left: 10px;
@@ -129,7 +168,7 @@ export default {
     border: solid;
     border-width: 1px;
     border-radius: 3px;
-    
+
     padding: 10px;
 }
 
@@ -169,5 +208,14 @@ export default {
 #browser-screenshot {
     width: 100%;
     height: auto;
+}
+
+#status {
+    padding: 50px;
+}
+
+img {
+    width: 100%;
+    height: 100%;
 }
 </style>

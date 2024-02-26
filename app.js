@@ -8,6 +8,11 @@ const sqlite3 = require('sqlite3').verbose();
 const puppeteer = require('puppeteer')
 const merge = require("merge-img");
 const Jimp = require("jimp");
+const { imgDiff } = require("img-diff-js");
+
+const multer = require('multer');
+const fs = require('fs');
+const PNG = require('pngjs').PNG;
 
 const webpack = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
@@ -16,6 +21,9 @@ const webpackConfig = require('@vue/cli-service/webpack.config.js');
 
 const app = express();
 app.use(cors());
+
+// Set up multer for handling multipart/form-data
+const upload = multer({ dest: 'uploads/' });
 
 // HMR Webpack Middleware
 const compiler = webpack(webpackConfig);
@@ -39,7 +47,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'database.db'), (err) => {
     } else {
         console.log('Connected to the SQLite database.');
         // Create 'urls' table if it doesn't exist
-        db.run('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, is_deleted INTEGER DEFAULT 0)', function (err) {
+        db.run('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, crop_blob BLOB NOT NULL, data TEXT NOT NULL, is_deleted INTEGER DEFAULT 0)', function (err) {
             if (err) {
                 console.error('Error creating table:', err.message);
             } else {
@@ -56,46 +64,82 @@ app.get('/', (req, res) => {
 app.get('/api/screenshot/:url', async (req, res) => {
     // Retrieve URL from request parameters
     const url = decodeURIComponent(req.params.url);
-    await takeScreenshot(url);
+    await takeScreenshot(url, "./screenshots/temp_screenshot.png");
     console.log("Finished!")
-    res.status(200).sendFile(path.join(__dirname, './screenshots', 'screenshot.png'));
+    res.status(200).sendFile(path.join(__dirname, './screenshots', 'temp_screenshot.png'));
 })
 
-app.post('/api/monitor/:url', (req, res) => {
-    // Retrieve URL from request parameters
-    const url = decodeURIComponent(req.params.url);
-    let task_id
+app.post('/api/monitor', async (req, res) => {
+    // Retrieve URL and data from request body
+    const url = req.body.url;
+    const data = JSON.stringify(req.body.data);
+    const crop_blob = req.body.crop_blob;
+    let task_id = -1;
+
+    console.log("crop_blob", crop_blob)
 
     // Insert URL into the SQLite database
-    db.run('INSERT INTO urls (url) VALUES (?)', [url], function (err) {
+    db.run('INSERT INTO urls (url, crop_blob, data) VALUES (?, ?, ?)', [url, crop_blob, data], async function (err) {
         if (err) {
             return console.error('Error inserting URL into database:', err.message);
         }
-        task_id = this.lastID
+        task_id = this.lastID;
         console.log(`URL inserted with row id ${task_id}`);
+        const path = "./screenshots/" + task_id + "_screenshot.png";
+        await takeScreenshot(url, path);
         res.status(200).json({ id: task_id });
     });
-
-    // res.status(500).json({ message: 'Internal Server Error' });
-
 });
+
 
 app.get('/api/monitor/:id', (req, res) => {
     const task_id = req.params.id;
 
-    // Retrieve URL from the database based on the provided ID
-    db.get('SELECT url FROM urls WHERE id = ? AND is_deleted = 0', [task_id], (err, row) => {
+    db.get('SELECT url, crop_blob, data FROM urls WHERE id = ? AND is_deleted = 0', [task_id], async (err, row) => {
         if (err) {
-            console.error('Error retrieving URL from database:', err.message);
+            console.error('Error retrieving data from database:', err.message);
             res.status(500).json({ message: 'Internal Server Error' });
         } else {
             if (row) {
                 const url = row.url;
+                const crop_blob = new Blob([JSON.stringify(row.crop_blob, null, 2)], {
+                    type: "application/json",
+                });
+                const dataString = row.data;
+                const dataObject = JSON.parse(dataString);
+
                 console.log('Retrieved URL:', url);
-                res.status(200).json({ message: 'Retrieved URL: ' + url });
+                console.log('Retrieved Image Blob:', crop_blob);
+                console.log('Retrieved Data:', dataObject);
+
+                const new_path = "./screenshots/" + task_id + "_new_screenshot.png";
+                const original_path = "./screenshots/" + task_id + "_screenshot.png";
+                const diff_path = "./screenshots/" + task_id + "_diff.png";
+
+                // Take new screenshot of page
+                await takeScreenshot(url, new_path);
+
+                // Crop images
+                await cropImage(new_path, dataObject.x, dataObject.y, dataObject.width, dataObject.height);
+                await cropImage(original_path, dataObject.x, dataObject.y, dataObject.width, dataObject.height);
+
+                imgDiff({
+                    actualFilename: new_path,
+                    expectedFilename: original_path,
+                    diffFilename: diff_path,
+                    options: {
+                        threshold: 0.2,   // default 0.1
+                        // includeAA: true  // default false
+                    }
+                })
+                    .then((result) => {
+                        console.log(result);
+                        res.status(200).json({ url, result });
+                    });
+
             } else {
-                console.log('URL not found')
-                res.status(404).json({ message: 'URL not found' });
+                console.log('Data not found');
+                res.status(404).json({ message: 'Data not found' });
             }
         }
     });
@@ -121,7 +165,6 @@ app.delete('/api/monitor/:id', (req, res) => {
     });
 });
 
-
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
@@ -139,7 +182,7 @@ app.listen(port, () => {
 ///
 
 // Monitor web page on POST request
-async function takeScreenshot(url) {
+async function takeScreenshot(url, file_path) {
     console.log("Taking screenshot of " + url);
 
     // Launch the browser and open a new blank page
@@ -161,7 +204,7 @@ async function takeScreenshot(url) {
 
         await page.goto(url);
 
-        const path = "./screenshots/screenshot.png";
+        const path = file_path;
 
         const { pages, extraHeight, viewport } = await page.evaluate(() => {
             window.scrollTo(0, 0);
@@ -242,3 +285,20 @@ function wait(milliseconds) {
         setTimeout(resolve, milliseconds);
     });
 }
+
+async function cropImage(path, x, y, width, height) {
+    try {
+      // Load the image
+      const image = await Jimp.read(path);
+      
+      // Crop the image
+      const croppedImage = image.crop(x, y, width, height);
+      
+      // Save the cropped image
+      await croppedImage.writeAsync(path);
+      
+      console.log('Image cropped and saved successfully.');
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
