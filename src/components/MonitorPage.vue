@@ -25,18 +25,6 @@
             </div>
             <button @click="postURL(url)" class="btn" id="post-url-button">Monitor for FREE</button>
         </div>
-        <div class="input-wrapper">
-            <p>Get page status (enter id#):</p>
-            <input v-model="get_id" class="input">
-            <button @click="getStatus(get_id)" class="btn" id="get-status-button">GET</button>
-        </div>
-        <div class="input-wrapper">
-            <p>Stop monitoring page (enter id#):</p>
-            <input v-model="delete_id" class="input">
-            <button @click="deleteURL(delete_id)" class="btn" id="delete-url-button">DELETE</button>
-        </div>
-        <img id="get-screenshot" />
-        <div id="status"></div>
     </div>
 </template>
 
@@ -53,8 +41,6 @@ export default {
     data() {
         return {
             url: '',
-            get_id: '',
-            delete_id: '',
             screenshot_url: '',
         }
     },
@@ -106,32 +92,6 @@ export default {
                 console.log("no url provided");
             }
         },
-        getStatus(id) {
-            axios.get('/api/monitor/' + id)
-                .then(function (response) {
-                    let responseData = response.data.result;
-                    let url = response.data.url;
-                    console.log('Data', responseData);
-                    if (responseData.imagesAreSame) {
-                        document.getElementById("status").innerHTML = "There have been NO changes to " + url;
-                    } else {
-                        document.getElementById("status").innerHTML = "There have been " + responseData.diffCount + " changes to " + url;
-                    }
-
-                })
-                .catch(function (error) {
-                    console.log(error);
-                });
-        },
-        deleteURL(id) {
-            axios.delete('/api/monitor/' + id)
-                .then(function (response) {
-                    console.log(response.data.message)
-                })
-                .catch(function (error) {
-                    console.log(error)
-                })
-        },
     },
 }
 </script>
@@ -139,8 +99,8 @@ export default {
 <style scoped>
 .monitor-panel {
     background-color: var(--secondary-light-color);
-    margin-left: 10vw;
-    margin-right: 10vw;
+    margin-left: 12vw;
+    margin-right: 12vw;
     margin-top: 20px;
     margin-bottom: 20px;
     border-radius: 30px;
@@ -208,10 +168,6 @@ export default {
     border-radius: 3px;
 }
 
-.input:hover {
-    border-color: var(--mid-color);
-}
-
 .btn {
     background-color: var(--mid-color);
     margin-left: 10px;
@@ -223,17 +179,17 @@ export default {
     width: 25%;
 
     border: solid;
+    border-color: var(--mid-color);
     border-width: 2px;
     border-radius: 3px;
 }
 
 .btn:hover {
     cursor: pointer;
-    border-color: var(--mid-color);
 }
 
-#status {
-    padding: 50px;
+.input:hover {
+    border-color: var(--mid-color);
 }
 
 img {

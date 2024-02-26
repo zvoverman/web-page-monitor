@@ -12,8 +12,6 @@ footer {
     text-align: center;
     align-content: center;
     justify-content: center;
-
-    padding: 5px;
     width: 100%;
     background-color: var(--dark-color);
     color: var(--light-color);
@@ -22,5 +20,14 @@ footer {
 p {
     color: var(--light-color);
     padding: 10px;
+}
+
+a {
+  color: var(--mid-color);
+}
+
+/* Visited links */
+a:visited {
+  color: var(--mid-color);
 }
 </style>

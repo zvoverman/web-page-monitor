@@ -10,10 +10,6 @@ const merge = require("merge-img");
 const Jimp = require("jimp");
 const { imgDiff } = require("img-diff-js");
 
-const multer = require('multer');
-const fs = require('fs');
-const PNG = require('pngjs').PNG;
-
 const webpack = require('webpack');
 const webpackDevMiddleware = require('webpack-dev-middleware');
 const webpackHotMiddleware = require('webpack-hot-middleware');
@@ -21,9 +17,6 @@ const webpackConfig = require('@vue/cli-service/webpack.config.js');
 
 const app = express();
 app.use(cors());
-
-// Set up multer for handling multipart/form-data
-const upload = multer({ dest: 'uploads/' });
 
 // HMR Webpack Middleware
 const compiler = webpack(webpackConfig);
@@ -36,7 +29,7 @@ app.use(webpackHotMiddleware(compiler));
 app.use(express.json());
 
 // Serve static files from the '/client/screenshots' directory
-app.use(express.static(path.join(__dirname, '/dist')));
+app.use('/screenshots', express.static(path.join(__dirname, 'screenshots')));
 
 const port = process.env.PORT || 8080;
 
@@ -57,9 +50,10 @@ const db = new sqlite3.Database(path.join(__dirname, 'database.db'), (err) => {
     }
 });
 
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '/dist/index.html'))
-})
+// Serve index.html for all other routes
+app.get('*', function(req, res) {
+  res.sendFile(path.join(__dirname, 'dist'));
+});
 
 app.get('/api/screenshot/:url', async (req, res) => {
     // Retrieve URL from request parameters
@@ -68,6 +62,24 @@ app.get('/api/screenshot/:url', async (req, res) => {
     console.log("Finished!")
     res.status(200).sendFile(path.join(__dirname, './screenshots', 'temp_screenshot.png'));
 })
+
+// Define a route to fetch all entries
+app.get('/api/urls', (req, res) => {
+    // SQL query to select all entries from the 'urls' table
+    const query = 'SELECT * FROM urls WHERE is_deleted = 0';
+
+    // Execute the query
+    db.all(query, (err, rows) => {
+        if (err) {
+            console.error('Error fetching data:', err.message);
+            res.status(500).json({ error: 'Internal server error' });
+        } else {
+            // Send the rows as a response
+            res.json(rows);
+        }
+    });
+});
+
 
 app.post('/api/monitor', async (req, res) => {
     // Retrieve URL and data from request body
