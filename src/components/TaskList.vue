@@ -16,9 +16,9 @@
         <img v-show="currentImage === 'diff'" id="diff-img" :src="diffImageUrl" alt="Diff">
         <div id="status"></div>
         <div class="controls">
-            <button @click="showImage('original')">Original</button>
-            <button @click="showImage('new')">New</button>
-            <button @click="showImage('diff')">Diff</button>
+            <button @click="showImage('original')" class="img-btn" id="original-img">Original</button>
+            <button @click="showImage('new')" class="img-btn" id="new-img">New</button>
+            <button @click="showImage('diff')" class="img-btn" id="diff-img">Diff</button>
         </div>
     </div>
 </template>
@@ -81,7 +81,7 @@ export default {
         },
         showImage(imageType) {
             // Update currentImage to switch between images
-            this.currentImage = imageType;
+            this.currentImage = imageType;  
         }
     }
 }
@@ -131,7 +131,17 @@ export default {
     margin: 5px;
 }
 
-.btn:hover {
+.img-btn {
+    background-color: var(--mid-color);
+    padding: 10px;
+    border: solid;
+    border-color: var(--mid-color);
+    border-width: 2px;
+    border-radius: 3px;
+    margin: 5px;
+}
+
+.btn:hover, .img-btn:hover {
     cursor: pointer;
 }
 
