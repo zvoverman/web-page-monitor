@@ -1,8 +1,9 @@
 <template>
     <div class="monitor-page">
+        <h2 id="descriptor">Enter a URL you want to monitor...</h2>
         <div class="monitor-panel">
             <div class="input-wrapper">
-                <input v-model="url" class="input" placeholder="Enter a website: www.example.com">
+                <input v-model="url" class="input" placeholder="Enter a website: https://www.example.com">
                 <button @click="getWebsite(url)" class="btn" id="post-url-button">GO</button>
             </div>
             <div class="browser-window-margins">
@@ -48,22 +49,18 @@ export default {
         async getWebsite(url) {
             try {
                 console.log("Grabbing website...")
-                // Fetch the screenshot from backend using Axios
+                document.getElementById("descriptor").innerHTML = "Grabbing website..."
                 const response = await axios.get('/api/screenshot/' + encodeURIComponent(url), {
-                    responseType: 'blob' // Set response type to blob
+                    responseType: 'blob' 
                 });
 
                 console.log("Response received")
-
-                if (response.status === 200) {
-                    // Convert binary data to URL
-                    const blob = response.data;
-                    this.screenshot_url = URL.createObjectURL(blob);
-                } else {
-                    console.error('Failed to fetch screenshot');
-                }
+                const blob = response.data;
+                this.screenshot_url = URL.createObjectURL(blob);
+                document.getElementById("descriptor").innerHTML = "Website Retrieved!"
             } catch (error) {
                 console.error('Error fetching screenshot:', error);
+                document.getElementById("descriptor").innerHTML = "Failed to fetch website.";
             }
         },
         async postURL(url) {
@@ -78,15 +75,16 @@ export default {
                     data: crop_data,
                 };
 
-                // Make a POST request to the API endpoint
+                document.getElementById("descriptor").innerHTML = "Attempting to monitor you website..."
+
                 axios.post('/api/monitor', data)
                     .then(response => {
-                        // Handle success
                         console.log('Task ID:', response.data.id);
+                        document.getElementById("descriptor").innerHTML = "Your website is being monitored! Reload to get its status.";
                     })
                     .catch(error => {
-                        // Handle error
                         console.error('Error:', error);
+                        document.getElementById("descriptor").innerHTML = "An error occured trying to monitor your website. Please try again...";
                     })
             } else {
                 console.log("no url provided");
@@ -138,6 +136,7 @@ export default {
     width: 100%;
     height: auto;
 }
+
 .input-wrapper {
     display: flex;
     text-align: center;

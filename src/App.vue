@@ -29,6 +29,7 @@ export default {
     --light-color: #fffcf2;
     --secondary-light-color: #ccc5b9;
     --mid-color: #eb5e28;
+    --mid-secondary-color: #eb5f28bd;
     --secondary-dark-color: #403d39;
     --dark-color: #252422;
 }

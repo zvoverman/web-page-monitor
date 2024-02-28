@@ -20,10 +20,7 @@ To contribute to the development of Web Page Monitor, follow these steps:
 
 1) Fork the repository.
 2) Clone your fork: `git clone https://github.com/your-username/web-page-monitor.git`
-3) **Start Development Environment**
-```bash
-npm start
-```
+3) Start development environment: `npm start`
 4) Commit your changes: `git commit -m "Your message here"`
 5) Push to your fork: `git push origin main`
 6) Submit a pull request.
