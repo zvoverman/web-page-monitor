@@ -26,7 +26,6 @@ a {
   color: var(--mid-color);
 }
 
-/* Visited links */
 a:visited {
   color: var(--mid-color);
 }

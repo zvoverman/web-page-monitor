@@ -34,14 +34,12 @@ export default {
             originalImageUrl: '',
             newImageUrl: '',
             diffImageUrl: '',
-            currentImage: 'original' // Track the currently displayed image
+            currentImage: 'original'
         }
     },
     mounted() {
-        // Make a GET request using Axios to fetch URLs from your backend API
         axios.get('/api/urls')
             .then(response => {
-                // Set the fetched URLs to the urls array
                 this.urls = response.data;
             })
             .catch(error => {
@@ -60,8 +58,6 @@ export default {
                     } else {
                         document.getElementById("status").innerHTML = "There have been " + responseData.diffCount + " changes to " + url;
                     }
-                    
-                    // Set image URLs
                     this.originalImageUrl = `../../screenshots/${id}_screenshot.png`;
                     this.newImageUrl = `../../screenshots/${id}_new_screenshot.png`;
                     this.diffImageUrl = `../../screenshots/${id}_diff.png`;
@@ -80,7 +76,6 @@ export default {
                 })
         },
         showImage(imageType) {
-            // Update currentImage to switch between images
             this.currentImage = imageType;  
         }
     }
@@ -104,24 +99,24 @@ export default {
 
 .task {
     display: flex;
-    justify-content: space-between; /* Adjusted alignment */
+    justify-content: space-between;
     align-items: center;
     text-align: center;
     color: var(--light-color);
     background-color: var(--secondary-dark-color);
     border-radius: 10px;
     margin: 10px;
-    padding: 10px; /* Added padding for better spacing */
+    padding: 10px;
 }
 
 .btns {
     display: flex;
-    justify-content: flex-end; /* Adjusted alignment */
+    justify-content: flex-end;
 }
 
 .btn {
     background-color: var(--mid-color);
-    width: auto; /* Adjusted width */
+    width: auto;
     height: auto;
     padding: 10px;
     border: solid;

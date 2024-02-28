@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path')
-const axios = require('axios')
 const sqlite3 = require('sqlite3').verbose();
 
 // Screenshot
@@ -24,11 +23,7 @@ app.use(webpackDevMiddleware(compiler, {
     publicPath: webpackConfig.output.publicPath
 }));
 app.use(webpackHotMiddleware(compiler));
-
-// Middleware to parse JSON request bodies
 app.use(express.json());
-
-// Serve static files from the '/client/screenshots' directory
 app.use('/screenshots', express.static(path.join(__dirname, 'screenshots')));
 
 const port = process.env.PORT || 8080;
@@ -39,7 +34,7 @@ const db = new sqlite3.Database(path.join(__dirname, 'database.db'), (err) => {
         console.error('Error connecting to the database:', err.message);
     } else {
         console.log('Connected to the SQLite database.');
-        // Create 'urls' table if it doesn't exist
+        // Create urls table if it doesn't exist
         db.run('CREATE TABLE IF NOT EXISTS urls (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT NOT NULL, crop_blob BLOB NOT NULL, data TEXT NOT NULL, is_deleted INTEGER DEFAULT 0)', function (err) {
             if (err) {
                 console.error('Error creating table:', err.message);
@@ -50,39 +45,30 @@ const db = new sqlite3.Database(path.join(__dirname, 'database.db'), (err) => {
     }
 });
 
-// Serve index.html for all other routes
-app.get('*', function(req, res) {
-  res.sendFile(path.join(__dirname, 'dist'));
-});
-
+// Take a full-page screenshot of specified website
 app.get('/api/screenshot/:url', async (req, res) => {
-    // Retrieve URL from request parameters
     const url = decodeURIComponent(req.params.url);
     await takeScreenshot(url, "./screenshots/temp_screenshot.png");
     console.log("Finished!")
     res.status(200).sendFile(path.join(__dirname, './screenshots', 'temp_screenshot.png'));
 })
 
-// Define a route to fetch all entries
+// Get all tasks from urls
 app.get('/api/urls', (req, res) => {
-    // SQL query to select all entries from the 'urls' table
+    // Do not send deleted rows
     const query = 'SELECT * FROM urls WHERE is_deleted = 0';
-
-    // Execute the query
     db.all(query, (err, rows) => {
         if (err) {
             console.error('Error fetching data:', err.message);
             res.status(500).json({ error: 'Internal server error' });
         } else {
-            // Send the rows as a response
             res.json(rows);
         }
     });
 });
 
-
+// Enter monitoring request into database
 app.post('/api/monitor', async (req, res) => {
-    // Retrieve URL and data from request body
     const url = req.body.url;
     const data = JSON.stringify(req.body.data);
     const crop_blob = req.body.crop_blob;
@@ -90,7 +76,6 @@ app.post('/api/monitor', async (req, res) => {
 
     console.log("crop_blob", crop_blob)
 
-    // Insert URL into the SQLite database
     db.run('INSERT INTO urls (url, crop_blob, data) VALUES (?, ?, ?)', [url, crop_blob, data], async function (err) {
         if (err) {
             return console.error('Error inserting URL into database:', err.message);
@@ -103,7 +88,7 @@ app.post('/api/monitor', async (req, res) => {
     });
 });
 
-
+// Get current status of task
 app.get('/api/monitor/:id', (req, res) => {
     const task_id = req.params.id;
 
@@ -128,10 +113,8 @@ app.get('/api/monitor/:id', (req, res) => {
                 const original_path = "./screenshots/" + task_id + "_screenshot.png";
                 const diff_path = "./screenshots/" + task_id + "_diff.png";
 
-                // Take new screenshot of page
                 await takeScreenshot(url, new_path);
 
-                // Crop images
                 await cropImage(new_path, dataObject.x, dataObject.y, dataObject.width, dataObject.height);
                 await cropImage(original_path, dataObject.x, dataObject.y, dataObject.width, dataObject.height);
 
@@ -141,7 +124,7 @@ app.get('/api/monitor/:id', (req, res) => {
                     diffFilename: diff_path,
                     options: {
                         threshold: 0.2,   // default 0.1
-                        // includeAA: true  // default false
+                        includeAA: true  // default false
                     }
                 })
                     .then((result) => {
