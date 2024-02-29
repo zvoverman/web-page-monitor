@@ -2,11 +2,15 @@
 
 **Web Page Monitor** is a web application built with Vue.js, Node.js, Express, and SQLite, designed for monitoring web pages.
 
+![Monitor](public/monitor_screencast.gif)
+
 ## Features
 - **Monitor Dynamic Pages**: Track changes on dynamic web pages by utilizing screenshots.
 - **Intuitive Selection UI**: Easily select specific areas of web pages to monitor for changes.
 - **Manage List of Tasks**: Maintain a list of URLs to monitor and manage them easily.
 - **Visual Results**: View monitoring results visually by seeing comparisons between original and updated versions of web pages.
+
+![Results](public/status_screencast.gif)
 
 ## Usage
 1) **View a Website**: Navigate to the URL of the website you want to monitor.
@@ -26,4 +30,4 @@ To contribute to the development of Web Page Monitor, follow these steps:
 6) Submit a pull request.
 
 ## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the [MIT License](LICENSE).
