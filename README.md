@@ -2,7 +2,7 @@
 
 **Web Page Monitor** is a web application built with Vue.js, Node.js, Express, and SQLite, designed for monitoring web pages.
 
-![Monitor](public/monitor_screencast.gif)
+![Monitor](public/monitor_screencast2.gif)
 
 ## Features
 - **Monitor Dynamic Pages**: Track changes on dynamic web pages by utilizing screenshots.
