@@ -29,4 +29,5 @@ COPY . .
 EXPOSE 8080
 
 # Define the command to run the application
-CMD [ "npm", "start" ]
+ENTRYPOINT ["node"]
+CMD ["app.js"]
