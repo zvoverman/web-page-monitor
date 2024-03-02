@@ -29,5 +29,10 @@ To contribute to the development of Web Page Monitor, follow these steps:
 5) Push to your fork: `git push origin main`
 6) Submit a pull request.
 
+## Deploy with Docker
+
+1) Run `npm run start-container` to build and deploy docker image.
+2) Navigate to [https://localhost:8080](https://localhost:8080) to access the application.
+
 ## License
 This project is licensed under the [MIT License](LICENSE).
